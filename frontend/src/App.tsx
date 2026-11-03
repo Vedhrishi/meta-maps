@@ -243,6 +243,13 @@ export default function App() {
   const demoDriveRef = useRef(false)
   const injected = useRef(false)
   const demoDrive = useCallback(() => {
+    // A route is already planned: simulate THAT route, not the built-in Charminar demo.
+    const cur = navRef.current
+    if (cur.current && cur.to) {
+      if (cur.status !== 'trip') cur.startTrip('sim')
+      setActiveTab('map')
+      return
+    }
     const t = DEMO_TRIPS[0]
     autoStart.current = true
     autoStartMode.current = 'sim'
