@@ -111,11 +111,16 @@ export function TripHUD({ nav, isDesktop, onStartLive, rain, onShareEta, onShare
             )}
           </div>
         </div>
-        <button onClick={onStartLive} style={{
+        <button onClick={onStartLive} title="Navigate using your real GPS location" style={{
           padding: isDesktop ? '11px 20px' : '10px 16px', flexShrink: 0, borderRadius: 12, fontWeight: 800, fontSize: 14, border: 'none', color: '#fff',
           background: 'linear-gradient(135deg,#0050ff,#00b4ff)', boxShadow: '0 4px 18px rgba(0,120,255,.45)',
           whiteSpace: 'nowrap',
         }}>▶ Start</button>
+        <button onClick={() => nav.startTrip('sim')} title="Replay this route as a simulated drive — no GPS needed" style={{
+          padding: isDesktop ? '11px 16px' : '10px 13px', flexShrink: 0, borderRadius: 12, fontWeight: 700, fontSize: 13,
+          background: 'rgba(255,255,255,.04)', border: '1px solid rgba(0,212,255,.25)', color: 'var(--accent)',
+          whiteSpace: 'nowrap',
+        }}>Simulate</button>
         {onShareDestination && (
           <button onClick={onShareDestination} title="Share this place" aria-label="Share this place" style={{
             background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.12)', color: 'var(--text2)',

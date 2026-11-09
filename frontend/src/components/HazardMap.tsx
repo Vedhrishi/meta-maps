@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import { lastKnown } from '../hooks/useLocation'
 import { HazardReport } from '../lib/api'
 import {
   HAZARD_LABELS, SEVERITY_COLORS,
@@ -58,6 +59,9 @@ interface Props {
 
 export function HazardMap({ reports, focusId, newHazardId, onUpvote }: Props) {
   const focused = focusId ? reports.find(r => r.id === focusId) : null
+  // Open where the device was last seen (same fallback the 3D map uses),
+  // not always zoomed out to all of India — the 2D view lost this before.
+  const startAt = lastKnown()
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
@@ -85,8 +89,8 @@ export function HazardMap({ reports, focusId, newHazardId, onUpvote }: Props) {
       }} />
 
       <MapContainer
-        center={[20.5937, 78.9629]}
-        zoom={5}
+        center={startAt ? [startAt.lat, startAt.lng] : [20.5937, 78.9629]}
+        zoom={startAt ? 14 : 5}
         style={{ height: '100%', width: '100%', background: '#020608' }}
         zoomControl={true}
       >
