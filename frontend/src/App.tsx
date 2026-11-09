@@ -79,6 +79,8 @@ export default function App() {
   const [rain, setRain] = useState<{ key: number; outlook: RainOutlook; done: boolean }>({ key: -1, outlook: null, done: false })
   // 3D is the base view; 2D stays available as a fallback and for low-end devices
   const [map3d, setMap3d] = useState(true)
+  // Basic = the 3D engine's flat style (no extrusion, no pitch) for low-powered devices
+  const [mapBasic, setMapBasic] = useState(false)
 
   const isDesktop = useIsDesktop()
   const toastId = useRef(0)
@@ -812,6 +814,8 @@ export default function App() {
           {map3d ? (
             <Suspense fallback={<MapLoading />}>
               <HazardMap3D
+                key={mapBasic ? 'basic' : '3d'}
+                basic={mapBasic}
                 autoFit={loc.status === 'denied' || loc.status === 'unavailable'}
                 reports={reports} focusId={focusId} newHazardId={newHazardId} onUpvote={handleUpvote}
                 route={nav.current ? {
@@ -908,19 +912,22 @@ export default function App() {
             border: '1px solid rgba(0,212,255,.16)',
             borderRadius: 10, padding: 4,
           }}>
-            {([['2D', false], ['3D', true]] as const).map(([label, on]) => (
-              <button
-                key={label}
-                onClick={() => setMap3d(on)}
-                style={{
-                  background: map3d === on ? 'rgba(0,212,255,.15)' : 'transparent',
-                  color: map3d === on ? 'var(--accent)' : 'var(--text3)',
-                  border: 'none', borderRadius: 7, padding: '5px 13px',
-                  fontSize: 11, fontWeight: 800, letterSpacing: '.08em',
-                  fontFamily: 'var(--font2)',
-                }}
-              >{label}</button>
-            ))}
+            {([['2D', false, false], ['BASIC', true, true], ['3D', true, false]] as const).map(([label, is3d, basic]) => {
+              const active = is3d === map3d && (!is3d || basic === mapBasic)
+              return (
+                <button
+                  key={label}
+                  onClick={() => { setMap3d(is3d); if (is3d) setMapBasic(basic) }}
+                  style={{
+                    background: active ? 'rgba(0,212,255,.15)' : 'transparent',
+                    color: active ? 'var(--accent)' : 'var(--text3)',
+                    border: 'none', borderRadius: 7, padding: '5px 13px',
+                    fontSize: 11, fontWeight: 800, letterSpacing: '.08em',
+                    fontFamily: 'var(--font2)',
+                  }}
+                >{label}</button>
+              )
+            })}
           </div>
           {activeTab === 'map' && nav.status !== 'trip' && nav.status !== 'arrived' && (
             <VoiceHUD

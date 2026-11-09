@@ -12,7 +12,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl, { Map as MLMap, Marker, Popup } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { HazardReport, API_URL } from '../lib/api'
-import { darkStyle3d } from '../lib/mapStyle3d'
+import { darkStyle3d, basicStyle } from '../lib/mapStyle3d'
 import { HAZARD_ICONS, HAZARD_LABELS, SEVERITY_COLORS, timeAgo } from '../lib/mapUtils'
 
 type LngLatT = [number, number]
@@ -38,6 +38,8 @@ interface Props {
   autoFit?: boolean
   /** People sharing their live location with you */
   friends?: { id: string; name: string; color: string; lat: number; lng: number; heading: number | null; speed: number | null }[]
+  /** Flat "basic" style (no 3D extrusion, no camera pitch) instead of the pitched 3D view */
+  basic?: boolean
 }
 
 
@@ -230,7 +232,7 @@ function popupHTML(r: HazardReport): string {
     </div>`
 }
 
-export function HazardMap3D({ reports, focusId, newHazardId, onUpvote, route, trip, onFollowBreak, onFollowResume, me, onLocate, autoFit = false, friends = [] }: Props) {
+export function HazardMap3D({ reports, focusId, newHazardId, onUpvote, route, trip, onFollowBreak, onFollowResume, me, onLocate, autoFit = false, friends = [], basic = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MLMap | null>(null)
   const markersRef = useRef<Map<string, Marker>>(new Map())
@@ -397,11 +399,11 @@ export function HazardMap3D({ reports, focusId, newHazardId, onUpvote, route, tr
     try {
       map = new maplibregl.Map({
         container: containerRef.current,
-        style: darkStyle3d,
+        style: basic ? basicStyle : darkStyle3d,
         // open where the device was last seen, else a view of all India: never a fixed city
         center: startAt ? [startAt.lng, startAt.lat] : [79.0, 22.5],
         zoom: startAt ? 14.2 : 4.3,
-        pitch: startAt ? DEFAULT_PITCH : 0,
+        pitch: basic ? 0 : startAt ? DEFAULT_PITCH : 0,
         maxPitch: 75,
         bearing: DEFAULT_BEARING,
         canvasContextAttributes: { antialias: true },

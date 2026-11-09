@@ -111,7 +111,7 @@ export const darkStyle3d: StyleSpecification = {
       type: 'line',
       source: 'openmaptiles',
       'source-layer': 'transportation',
-      filter: ['in', ['get', 'class'], ['literal', ['minor', 'service', 'track']]],
+      filter: ['in', ['get', 'class'], ['literal', ['minor', 'service', 'track', 'path']]],
       minzoom: 12,
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
@@ -307,6 +307,31 @@ export const darkStyle3d: StyleSpecification = {
       },
     },
 
+    // House numbers — real OSM addr:housenumber points, shown only when
+    // zoomed in close enough to read a single building on the lane
+    {
+      id: 'housenumber-label',
+      type: 'symbol',
+      source: 'openmaptiles',
+      'source-layer': 'housenumber',
+      minzoom: 17,
+      layout: {
+        'text-field': ['get', 'housenumber'],
+        'text-font': FONT,
+        'text-size': 9.5,
+      },
+      paint: {
+        'text-color': C.labelMinor,
+        'text-halo-color': C.labelHalo,
+        'text-halo-width': 1,
+      },
+    },
+
+    // Note: named-building and named-place labels for all of Telangana are
+    // already served separately via the `names` source in HazardMap3D.tsx,
+    // built by tools/build_names.py from Overture data (not this OSM vector
+    // tileset) — adding OSM building/poi name labels here would duplicate them.
+
     {
       id: 'place-label',
       type: 'symbol',
@@ -332,4 +357,28 @@ export const darkStyle3d: StyleSpecification = {
       },
     },
   ],
+}
+
+// "Basic" view: the same real data and labels as darkStyle3d, but flattened —
+// no 3D extrusion, no roof caps, no light source. For low-powered devices or
+// anyone who just wants a clean, fast-rendering map.
+const buildingFlat = {
+  id: 'building-flat',
+  type: 'fill' as const,
+  source: 'openmaptiles',
+  'source-layer': 'building',
+  minzoom: 13,
+  paint: {
+    'fill-color': C.roadMinor,
+    'fill-outline-color': C.roadMain,
+    'fill-opacity': 0.55,
+  },
+}
+
+export const basicStyle: StyleSpecification = {
+  ...darkStyle3d,
+  light: undefined,
+  layers: darkStyle3d.layers.flatMap(l =>
+    l.id === 'building-3d' ? [buildingFlat] : l.id === 'building-roof' ? [] : [l]
+  ),
 }
